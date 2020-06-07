@@ -49,8 +49,6 @@ const CreatePoint = () => {
     setSelectedCity(event.target.value);
 
   const handleMapClick = (event: LeafletMouseEvent) => {
-    console.log(event.latlng);
-
     setSelectedPosition([
       event.latlng.lat,
       event.latlng.lng

@@ -1,16 +1,16 @@
 import { Request, Response } from 'express';
-import knex from '../database/connection';
+
+import serializationFactory from "../services/serialize.factory";
+import itemRepository from "../repository/item.repository";
 
 export default class ItemsController {
 
     async index(req: Request, res: Response) {
-        const items: any[] = await knex('items').select('*');
-        const serializedItems = items.map(item => ({
-            id: item.id,
-            title: item.title,
-            // image_url: `http://localhost:3333/uploads/${item.image}`
-            image_url: `http://192.168.0.2:3333/uploads/${item.image}`,
-        }));
+        const items: any[] = await itemRepository.findAll();
+
+        const attributes = ["id", "title", "image"];
+        const serializedItems = serializationFactory.serializeArray(items, attributes, "serializedWithAssetFolder");
+
         res.json(serializedItems);
     }
 
