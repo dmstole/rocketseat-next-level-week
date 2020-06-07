@@ -1,6 +1,6 @@
 class ValidateService {
     valid(condition: boolean, message: string) {
-        if(!condition) {
+        if(condition) {
             throw new Error(message=message);
         }
     }

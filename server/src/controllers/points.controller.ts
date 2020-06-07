@@ -72,6 +72,7 @@ export default class PointsController {
 
             res.json({ ...serializedPoint, items: serializedItems });
         } catch (error) {
+            console.log(error);
             res.status(500).json({ error });
         }
     }
