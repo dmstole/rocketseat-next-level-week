@@ -1,14 +1,59 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { Linking, SafeAreaView, Text, Image, View, TouchableOpacity } from 'react-native';
 import { Feather as Icon, FontAwesome } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView, Text, Image, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { RectButton } from 'react-native-gesture-handler';
+import * as MailComposer from "expo-mail-composer";
+
+import styles from './styles';
+import api from "../../services/api";
+
+interface Params {
+    pointId: number;
+}
+
+interface Data {
+    image: string;
+    name: string;
+    email: string;
+    whatsapp: string;
+    city: string;
+    uf: string;
+    items: {
+        title: string;
+    }[];
+}
 
 const Detail = () => {
 
+    const [data, setData] = useState<Data>({} as Data);
     const navigation = useNavigation();
+    const route = useRoute();
 
-    const handleNavigateBack = () => navigation.goBack();
+    const routeParams = route.params as Params;
+
+    useEffect(() => {
+        api.get(`points/${routeParams.pointId}`)
+            .then((response) => setData(response.data))
+            .catch((err) => console.error(err));
+    }, []);
+
+    const handleNavigateBack = () => navigation.navigate('Points');
+
+    const handleComposeMail = (point: Data) => {
+        MailComposer.composeAsync({
+            subject: "Interesse na coleta de resíduos",
+            recipients: [point.email],
+        });
+    }
+
+    const handleWhatsApp = (point: Data) => {
+        Linking.openURL(`WhatsApp://send?phone=${point.whatsapp}&text=Tenho interesse sobre coleta de resíduos.`);
+    }
+
+    if (!data) {
+        return;
+    }
 
     return (
         <SafeAreaView style={{ flex: 1 }}>
@@ -19,15 +64,15 @@ const Detail = () => {
 
                 <Image
                     style={styles.pointImage}
-                    source={{ uri: "https://images.unsplash.com/photo-1542838132-92c53300491e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=60" }}
+                    source={{ uri: data.image }}
                 />
 
                 <Text style={styles.pointName}>
-                    Mercado do João
+                    {data.name}
                 </Text>
 
                 <Text style={styles.pointItems}>
-                    Lâmpadas, Óleo de Cozinha
+                    {(data.items || []).map(item => item.title).join(',')}
                 </Text>
 
                 <View style={styles.address}>
@@ -36,13 +81,13 @@ const Detail = () => {
                     </Text>
 
                     <Text style={styles.addressContent}>
-                        São José dos Campos, SP
+                        {data.city}, {data.uf}
                     </Text>
                 </View>
             </View>
 
             <View style={styles.footer}>
-                <RectButton style={styles.button} onPress={() => { }}>
+                <RectButton style={styles.button} onPress={() => handleWhatsApp(data)}>
                     <FontAwesome
                         name="whatsapp"
                         size={20}
@@ -53,7 +98,7 @@ const Detail = () => {
                     </Text>
                 </RectButton>
 
-                <RectButton style={styles.button} onPress={() => { }}>
+                <RectButton style={styles.button} onPress={() => handleComposeMail(data)}>
                     <Icon
                         name="mail"
                         size={20}
@@ -69,77 +114,3 @@ const Detail = () => {
 }
 
 export default Detail;
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 32,
-        paddingTop: 20,
-    },
-
-    pointImage: {
-        width: '100%',
-        height: 120,
-        resizeMode: 'cover',
-        borderRadius: 10,
-        marginTop: 32,
-    },
-
-    pointName: {
-        color: '#322153',
-        fontSize: 28,
-        fontFamily: 'Ubuntu_700Bold',
-        marginTop: 24,
-    },
-
-    pointItems: {
-        fontFamily: 'Roboto_400Regular',
-        fontSize: 16,
-        lineHeight: 24,
-        marginTop: 8,
-        color: '#6C6C80'
-    },
-
-    address: {
-        marginTop: 32,
-    },
-
-    addressTitle: {
-        color: '#322153',
-        fontFamily: 'Roboto_500Medium',
-        fontSize: 16,
-    },
-
-    addressContent: {
-        fontFamily: 'Roboto_400Regular',
-        lineHeight: 24,
-        marginTop: 8,
-        color: '#6C6C80'
-    },
-
-    footer: {
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderColor: '#999',
-        paddingVertical: 20,
-        paddingHorizontal: 32,
-        flexDirection: 'row',
-        justifyContent: 'space-between'
-    },
-
-    button: {
-        width: '48%',
-        backgroundColor: '#34CB79',
-        borderRadius: 10,
-        height: 50,
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-
-    buttonText: {
-        marginLeft: 8,
-        color: '#FFF',
-        fontSize: 16,
-        fontFamily: 'Roboto_500Medium',
-    },
-});

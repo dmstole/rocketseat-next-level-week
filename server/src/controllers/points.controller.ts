@@ -8,14 +8,14 @@ export default class PointsController {
 
         try {
             const {
-                name, email, whatsapp,
+                name, email, whatsapp, image,
                 latitude, longitude,
                 city, uf,
                 items
             } = req.body || {};
 
             const point = {
-                image: "image-fakes",
+                image,
                 name, email, whatsapp,
                 latitude, longitude,
                 city, uf,
